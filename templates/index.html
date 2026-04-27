@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiteSmart</title>
+    <!-- Google Fonts Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* CSS Variables & Global Settings */
+        :root {
+            --bg-dark: #f8fafc;
+            --card-bg: #ffffff;
+            --border-subtle: rgba(0,0,0,0.08);
+            --primary-green: #4CAF50;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            
+            /* Score Colors */
+            --score-red: #ef4444;
+            --score-orange: #f59e0b;
+            --score-green: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("{{ url_for('static', filename='background.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px; /* Mobile-first but constrained on desktop */
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 1. Header */
+        header {
+            text-align: center;
+            padding: 20px 0 10px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Cards Base Style */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        .label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* 2. Goal Selector */
+        .goals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 600px) {
+            .goals-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .goal-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 12px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .goal-btn.active {
+            border-color: var(--primary-green);
+            background-color: rgba(76, 175, 80, 0.1); /* Green tint */
+        }
+
+        .goal-icon {
+            font-size: 24px;
+        }
+
+        /* 3. Meal Time Dropdown */
+        select {
+            width: 100%;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            padding: 16px;
+            border-radius: 12px;
+            appearance: none;
+            outline: none;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+        select:focus {
+            border-color: var(--primary-green);
+        }
+
+        /* 4. Upload Area */
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .upload-box {
+            border: 2px dashed var(--primary-green);
+            border-radius: 16px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            background-color: rgba(76, 175, 80, 0.05);
+            transition: background-color 0.3s ease;
+        }
+        .upload-box:hover {
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .upload-text {
+            color: var(--primary-green);
+            font-weight: 600;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        
+        #imagePreview {
+            display: none;
+            width: 100%;
+            max-height: 240px;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
+        /* Analyze Button */
+        .btn-analyze {
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.3s ease, transform 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+        .btn-analyze:active {
+            transform: scale(0.98);
+        }
+        .btn-analyze:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Spinner Animation */
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 5. Results Section */
+        #resultsSection {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #resultsSection.visible {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 5a. Dish Name */
+        .dish-header {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .dish-name {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .badge-amber {
+            display: none;
+            background-color: rgba(245, 158, 11, 0.2);
+            color: var(--score-orange);
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        /* 5b. Nutrition Pills */
+        .nutrition-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .nutrition-pill {
+            flex: 1;
+            min-width: 45%;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+        }
+        @media (min-width: 600px) {
+            .nutrition-pill { min-width: 20%; }
+        }
+        .pill-val {
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .pill-lbl {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* 5c. Health Score Card */
+        .score-card {
+            text-align: center;
+        }
+        .score-number {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 8px 0;
+            transition: color 0.3s ease;
+        }
+        .score-bar-bg {
+            width: 100%;
+            height: 8px;
+            background-color: var(--bg-dark);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .score-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 4px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+        }
+        .score-reason {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        /* 5d. Warning Box */
+        .warning-box {
+            display: none;
+            background-color: rgba(239, 68, 68, 0.15);
+            border-left: 4px solid var(--score-red);
+            padding: 16px;
+            border-radius: 0 12px 12px 0;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        /* 5e. Context Note */
+        .context-box {
+            display: none;
+            background-color: rgba(245, 158, 11, 0.15);
+            border-left: 4px solid var(--score-orange);
+            padding: 16px;
+            border-radius: 0 12px 12px 0;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .box-icon {
+            font-size: 20px;
+            line-height: 1.2;
+        }
+        .box-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* 5f. Smarter Swap Card */
+        .swap-card {
+            border: 1px solid var(--primary-green);
+        }
+        .swap-title {
+            color: var(--primary-green);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .swap-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .swap-stats {
+            display: flex;
+            gap: 16px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .swap-badge {
+            display: inline-block;
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--primary-green);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* 6. Streak Card */
+        .streak-card {
+            text-align: center;
+            border-color: rgba(245, 158, 11, 0.2);
+            background-color: rgba(245, 158, 11, 0.05);
+            padding: 16px;
+            margin-top: 10px;
+        }
+        .streak-text {
+            color: var(--score-orange);
+            font-weight: 600;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 1. Header -->
+    <header>
+        <div class="logo">🍃 BiteSmart</div>
+        <div class="tagline">Snap. Analyze. Eat Smarter.</div>
+    </header>
+
+    <!-- 2. Goal Selector -->
+    <div class="card">
+        <label class="label">What's your goal?</label>
+        <div class="goals-grid">
+            <div class="goal-btn" data-goal="lose_weight">
+                <span class="goal-icon">🏃</span>
+                <span>Lose Weight</span>
+            </div>
+            <div class="goal-btn" data-goal="build_muscle">
+                <span class="goal-icon">💪</span>
+                <span>Build Muscle</span>
+            </div>
+            <div class="goal-btn" data-goal="manage_diabetes">
+                <span class="goal-icon">🩺</span>
+                <span>Manage Diabetes</span>
+            </div>
+            <div class="goal-btn active" data-goal="stay_healthy">
+                <span class="goal-icon">✅</span>
+                <span>Stay Healthy</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Meal Time Dropdown -->
+    <div class="card">
+        <label class="label">Meal time</label>
+        <select id="mealTime">
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Dinner">Dinner</option>
+            <option value="Snack">Snack</option>
+        </select>
+    </div>
+
+    <!-- 4. Upload Area -->
+    <div class="upload-container">
+        <div class="upload-box" id="uploadBox">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text">Tap to upload food photo</div>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        <img id="imagePreview" alt="Food preview">
+        
+        <button class="btn-analyze" id="analyzeBtn">
+            <span class="spinner" id="btnSpinner"></span>
+            <span id="btnText">Analyze My Food 🔍</span>
+        </button>
+    </div>
+
+    <!-- 5. Results Section -->
+    <div id="resultsSection">
+        <!-- 5a. Dish Name -->
+        <div class="dish-header">
+            <div class="dish-name" id="resDishName">🍽️ Unknown Food</div>
+            <div class="badge-amber" id="resNotIndian">Not Indian food</div>
+        </div>
+
+        <!-- 5b. Nutrition Pills -->
+        <div class="nutrition-grid">
+            <div class="nutrition-pill">
+                <div class="pill-val" id="resCals">0</div>
+                <div class="pill-lbl">🔥 kcal</div>
+            </div>
+            <div class="nutrition-pill">
+                <div class="pill-val" id="resProtein">0g</div>
+                <div class="pill-lbl">💪 protein</div>
+            </div>
+            <div class="nutrition-pill">
+                <div class="pill-val" id="resFat">0g</div>
+                <div class="pill-lbl">🧈 fat</div>
+            </div>
+            <div class="nutrition-pill">
+                <div class="pill-val" id="resSugar">0g</div>
+                <div class="pill-lbl">🍬 sugar</div>
+            </div>
+        </div>
+
+        <!-- 5c. Health Score Card -->
+        <div class="card score-card">
+            <label class="label">Health Score</label>
+            <div class="score-number" id="resScoreNum">0</div>
+            <div class="score-bar-bg">
+                <div class="score-bar-fill" id="resScoreBar"></div>
+            </div>
+            <div class="score-reason" id="resScoreReason">Generating insights...</div>
+        </div>
+
+        <!-- 5d. Warning Box -->
+        <div class="warning-box" id="resWarningBox">
+            <div class="box-icon">⚠️</div>
+            <div class="box-text" id="resWarningText"></div>
+        </div>
+
+        <!-- 5e. Context Note -->
+        <div class="context-box" id="resContextBox">
+            <div class="box-icon">💡</div>
+            <div class="box-text" id="resContextText"></div>
+        </div>
+
+        <!-- 5f. Smarter Swap Card -->
+        <div class="card swap-card">
+            <div class="swap-title">💚 Smarter Choice</div>
+            <div class="swap-name" id="resSwapDish">Alternative Food</div>
+            <div class="swap-stats">
+                <span id="resSwapCals">0 kcal</span>
+                <span id="resSwapScore">Score: 0/10</span>
+            </div>
+            <div class="swap-badge" id="resSwapSaving">Save 0 kcal</div>
+        </div>
+    </div>
+
+    <!-- 6. Streak Card -->
+    <div class="card streak-card">
+        <div class="streak-text">🔥 Your streak: 3 days of smart choices</div>
+    </div>
+</div>
+
+<!-- JavaScript Logic -->
+<script>
+    // State variables
+    let selectedGoal = 'stay_healthy';
+    let selectedFile = null;
+
+    // DOM Elements
+    const goalBtns = document.querySelectorAll('.goal-btn');
+    const uploadBox = document.getElementById('uploadBox');
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const mealTimeSelect = document.getElementById('mealTime');
+    const resultsSection = document.getElementById('resultsSection');
+
+    // Handle Goal Selection
+    goalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            goalBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedGoal = btn.dataset.goal;
+        });
+    });
+
+    // Handle Image Upload
+    uploadBox.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            selectedFile = e.target.files[0];
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagePreview.src = event.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(selectedFile);
+        }
+    });
+
+    // Helper: Determine Score Color
+    function getScoreColor(score) {
+        if (score < 5) return 'var(--score-red)';
+        if (score <= 6) return 'var(--score-orange)';
+        return 'var(--score-green)';
+    }
+
+    // Handle Analyze Button Click
+    analyzeBtn.addEventListener('click', async () => {
+        if (!selectedFile) {
+            alert('Please tap to upload a food photo first!');
+            return;
+        }
+
+        // 1. Prepare UI for loading
+        analyzeBtn.disabled = true;
+        document.getElementById('btnSpinner').style.display = 'inline-block';
+        document.getElementById('btnText').textContent = 'Analyzing...';
+        
+        // Hide previous results and reset bar
+        resultsSection.classList.remove('visible');
+        document.getElementById('resScoreBar').style.width = '0%';
+
+        // 2. Build FormData
+        const formData = new FormData();
+        formData.append('image', selectedFile);
+        formData.append('goal', selectedGoal);
+        formData.append('meal_time', mealTimeSelect.value);
+
+        try {
+            // 3. Make the Request
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // 4. Populate Results
+            
+            // Dish & Badges
+            document.getElementById('resDishName').textContent = `🍽️ ${data.dish_name}`;
+            document.getElementById('resNotIndian').style.display = data.is_indian ? 'none' : 'inline-block';
+
+            // Nutrition Pills
+            document.getElementById('resCals').textContent = data.calories;
+            document.getElementById('resProtein').textContent = `${data.protein_g}g`;
+            document.getElementById('resFat').textContent = `${data.fat_g}g`;
+            document.getElementById('resSugar').textContent = `${data.sugar_g}g`;
+
+            // Score Card
+            const scoreNum = document.getElementById('resScoreNum');
+            const scoreBar = document.getElementById('resScoreBar');
+            const scoreColor = getScoreColor(data.health_score);
+            
+            scoreNum.textContent = data.health_score;
+            scoreNum.style.color = scoreColor;
+            scoreBar.style.backgroundColor = scoreColor;
+            document.getElementById('resScoreReason').textContent = data.score_reason;
+
+            // Warning Box
+            const warningBox = document.getElementById('resWarningBox');
+            if (data.warning && data.warning.trim() !== "") {
+                document.getElementById('resWarningText').textContent = data.warning;
+                warningBox.style.display = 'flex';
+            } else {
+                warningBox.style.display = 'none';
+            }
+
+            // Context Note
+            const contextBox = document.getElementById('resContextBox');
+            if (data.context_note && data.context_note.trim() !== "") {
+                document.getElementById('resContextText').textContent = data.context_note;
+                contextBox.style.display = 'flex';
+            } else {
+                contextBox.style.display = 'none';
+            }
+
+            // Smarter Swap
+            document.getElementById('resSwapDish').textContent = data.swap_dish;
+            document.getElementById('resSwapCals').textContent = `${data.swap_calories} kcal`;
+            document.getElementById('resSwapScore').textContent = `Score: ${data.swap_score}/10`;
+            document.getElementById('resSwapSaving').textContent = `Save ${data.calorie_saving} kcal`;
+
+            // 5. Reveal & Animate
+            resultsSection.classList.add('visible');
+            
+            // Use setTimeout to allow CSS display:flex to take effect before animating width
+            setTimeout(() => {
+                scoreBar.style.width = `${data.health_score * 10}%`;
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+
+        } catch (error) {
+            console.error("Analysis Failed: ", error);
+            alert('Analysis failed. Please try again.');
+        } finally {
+            // Restore button UI
+            analyzeBtn.disabled = false;
+            document.getElementById('btnSpinner').style.display = 'none';
+            document.getElementById('btnText').textContent = 'Analyze My Food 🔍';
+        }
+    });
+</script>
+</body>
+</html>
