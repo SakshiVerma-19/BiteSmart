@@ -1,8 +1,6 @@
 import os
-import pathlib
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
 
 load_dotenv()
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -11,17 +9,14 @@ try:
     print("Testing API Call...")
     # Create a tiny dummy image (1x1 pixel JPEG)
     import base64
-    dummy_jpg_base64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
+
+    dummy_jpg_base64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="  # noqa: E501
     img_bytes = base64.b64decode(dummy_jpg_base64)
 
-    image_part = genai.types.Part.from_bytes(
-        data=img_bytes,
-        mime_type="image/jpeg"
-    )
-    prompt = "Reply strictly in JSON: {\"success\": true}"
+    image_part = genai.types.Part.from_bytes(data=img_bytes, mime_type="image/jpeg")  # noqa: E501
+    prompt = 'Reply strictly in JSON: {"success": true}'
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=[image_part, prompt]
+        model="gemini-2.5-flash", contents=[image_part, prompt]
     )
     print("Response text:", response.text)
 except Exception as e:
