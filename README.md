@@ -1,8 +1,8 @@
-# BiteSmart 🍏
+# BiteSmart
 
 BiteSmart is an AI-powered Indian food health analyzer. Upload an image of your food, select your health goal and meal time, and BiteSmart uses Google's Gemini 2.5 Flash to provide you with a comprehensive nutritional analysis, a customized health score, and healthier meal alternatives!
 
-## ✨ Features
+##  Features
 - **AI Vision Analysis**: Powered by the Google GenAI SDK (`gemini-2.5-flash`), it instantly identifies the dish from an uploaded image.
 - **Goal-Oriented Scoring**: Health scores are dynamically adjusted based on your personal goals (e.g., losing weight, building muscle, managing diabetes, or staying healthy).
 - **Nutritional Insights**: Get estimated calories, protein, fat, and sugar content.
@@ -14,7 +14,7 @@ BiteSmart is an AI-powered Indian food health analyzer. Upload an image of your 
 - **Frontend**: HTML, CSS, JavaScript
 - **Deployment**: Docker
 
-## 🚀 Local Setup
+##  Local Setup
 
 1. **Clone the repository:**
    ```bash
@@ -49,7 +49,7 @@ BiteSmart is an AI-powered Indian food health analyzer. Upload an image of your 
    ```
    The app will run locally at `http://127.0.0.1:5000/`.
 
-## 🐳 Docker Deployment
+##  Docker Deployment
 BiteSmart includes a `Dockerfile` and is production-ready using Gunicorn.
 
 1. **Build the image**:
